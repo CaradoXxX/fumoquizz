@@ -840,8 +840,8 @@
             <div class="block-sub">50 вопросов</div>
           </button>
           <button type="button" data-block="all" class="block-btn span-2">
-            <div class="block-title">Все вместе (1–300)</div>
-            <div class="block-sub">301 вопрос подряд или вперемешку</div>
+            <div class="block-title">Все вместе</div>
+            <div class="block-sub">Все вопросы подряд или вперемешку</div>
           </button>
         </div>
       </div>
@@ -17768,7 +17768,7 @@ const CULTURE_BANKS = {
       "151-200": "Блок 151–200",
       "201-250": "Блок 201–250",
       "251-300": "Блок 251–300",
-      "all": "Все блоки (1–300)"
+      "all": "Все блоки"
     };
     function getActiveSubject() {
       return SUBJECTS[settings.subject] || SUBJECTS.philosophy;
@@ -17877,6 +17877,27 @@ const CULTURE_BANKS = {
       }
     }
 
+    function pluralRu(n, one, few, many) {
+      var m10 = n % 10, m100 = n % 100;
+      if (m10 === 1 && m100 !== 11) return one;
+      if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+      return many;
+    }
+
+    function updateBlockCounts() {
+      var banks = getActiveBanks();
+      document.querySelectorAll(".block-btn[data-block]").forEach(function(btn) {
+        var b = btn.getAttribute("data-block");
+        var n = b === "all"
+          ? Object.keys(banks).reduce(function(a, k) { return a + banks[k].length; }, 0)
+          : (banks[b] || []).length;
+        var sub = btn.querySelector(".block-sub");
+        if (!sub) return;
+        var word = pluralRu(n, "вопрос", "вопроса", "вопросов");
+        sub.textContent = b === "all" ? n + " " + word + " подряд или вперемешку" : n + " " + word;
+      });
+    }
+
     function updateStartUI() {
       const bank = getActiveBank();
       const stats = getBlockStats();
@@ -17894,6 +17915,7 @@ const CULTURE_BANKS = {
       });
       document.getElementById("stat-total-questions").textContent = bank.length;
       document.getElementById("btn-count-all").textContent = "Все (" + bank.length + ")";
+      updateBlockCounts();
       document.getElementById("stat-attempts").textContent = stats.attempts;
       document.getElementById("stat-best").textContent = stats.bestPercent !== null ? stats.bestPercent + "%" : "—";
 
